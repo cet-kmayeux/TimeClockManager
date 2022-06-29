@@ -9,3 +9,6 @@ Logs.txt
 *.spec
 
 __pycache__/
+
+.TimeClock.py.swp
+.GUI.py.swp
