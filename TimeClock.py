@@ -1,4 +1,4 @@
-import os, requests, getpass, GUI, keyring 
+import os, sys, requests, getpass, GUI, keyring 
 
 def loginSetup():
 
