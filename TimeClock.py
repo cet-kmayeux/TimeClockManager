@@ -1,6 +1,4 @@
-import os, sys, os.path, requests, getpass, GUI, keyring 
-from os.path import exists
-
+import os, requests, getpass, GUI, keyring 
 
 def loginSetup():
 
@@ -119,9 +117,4 @@ def clockOut(webToken):
 if (keyring.get_password("TimeClockManager", "username") is None):
     loginSetup()
 
-#print(getJWT())
-
-
-
-
-
+print(getJWT())
