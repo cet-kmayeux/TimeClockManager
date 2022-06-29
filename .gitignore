@@ -1,2 +1,9 @@
 Login.txt
 Logs.txt
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+*.manifest
+*.spec
