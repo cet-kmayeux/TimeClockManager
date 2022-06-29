@@ -53,7 +53,16 @@ def getJWT():
     response = requests.request("POST", url, json=payload, headers=headers)
 
     responseJson = response.json()
-    return responseJson["jwt"]
+    try:
+        return responseJson["jwt"]
+    except:
+        userInput = input("\nAn error has occured, this is usually because of an improper Username / Password configuration. Would you like to perform first time setup now?\n")
+        if userInput.upper() == "Y":
+            loginSetup()
+            print("\nLogin Setup completed. Please retry last command now.\n")
+        else:
+            print("\nGoodbye.")
+            sys.exit(0)
 
 def clockIn(webToken):
     import requests
@@ -117,8 +126,8 @@ def clockOut(webToken):
 if(not os.path.exists("Login.txt")):
     loginSetup()
 
-GUI.guiMain()
-#print(getJWT())
+print(getJWT())
+
 
 
 
