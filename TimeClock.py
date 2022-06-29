@@ -1,33 +1,29 @@
-import os, sys, os.path, requests, getpass, GUI 
+import os, sys, os.path, requests, getpass, GUI, keyring 
 from os.path import exists
 
 
 def loginSetup():
-    if(os.path.exists("Login.txt")):
-        os.remove("Login.txt")
 
     while True:
-        userInput = input("\nLogin Data file not detected, would you like to proceed with First Time Setup? (Y or N)\n")
+        userInput = input("\nLogin Data not detected, would you like to proceed with First Time Setup? (Y or N)\n")
 
         if (userInput.upper() == "Y"):
-            loginWrite = open("Login.txt", "w+")
-
+            
             userName = input("\nPlease input your username now: ")
 
             while True:
                 userPass = ""
                 userPass = getpass.getpass("Please input your password: ")
-                #userPass2 = input("Please verify your password: ")
 
                 if (userPass == getpass.getpass("Please verify your password: ")):
-                    loginWrite.write(userName + "\n" + userPass)
-                    loginWrite.close()
-                    break;
+                    keyring.set_password("TimeClockManager", "username", userName)
+                    keyring.set_password("TimeClockManager", userName, userPass)
+                    break
 
                 else:
                     print("\nPasswords do not match, please try again.\n")
 
-            break;
+            break
 
         elif (userInput.upper() == "N"):
             print("\nGoodbye!")
@@ -37,15 +33,13 @@ def loginSetup():
             print("\nERROR: Invalid Operator Detected \'%s\' please try again." % (userInput))
 
 def getJWT():
-    loginFile = open("Login.txt", "r")
-    userName = loginFile.readline().strip()
-    password = loginFile.readline().strip()
+    userName = keyring.get_password("TimeClockManager", "username") 
 
     url = "https://clock.payrollservers.us/AuthenticationService/OwnerCredentialsGrant/login"
 
     payload = {
      "username": userName,
-     "password": password,
+     "password": keyring.get_password("TimeClockManager", userName),
      "site": ""
 }
     headers = {"Content-Type": "application/json"}
@@ -122,11 +116,10 @@ def clockOut(webToken):
 
     response = requests.request("POST", url, json=payload, headers=headers)
 
-
-if(not os.path.exists("Login.txt")):
+if (keyring.get_password("TimeClockManager", "username") is None):
     loginSetup()
 
-print(getJWT())
+#print(getJWT())
 
 
 
