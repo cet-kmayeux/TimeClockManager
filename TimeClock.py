@@ -117,4 +117,4 @@ def clockOut(webToken):
 if (keyring.get_password("TimeClockManager", "username") is None):
     loginSetup()
 
-print(getJWT())
+GUI.guiMain()
