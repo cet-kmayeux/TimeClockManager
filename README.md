@@ -7,4 +7,4 @@ A GUI is provided for ease of use, and I plan on updating to add more functional
 
 # What is not planned?
 * Support for Time Clock frontends other than QuestCo's SwipeClock model.
-* API support for SwipeClock, and automating Clocking In\Out based on times are not planned.
+* API support for SwipeClock, and automating Clocking In\Out based on preset times.
