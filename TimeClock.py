@@ -58,7 +58,7 @@ def getJWT():
             print("\nGoodbye.")
             sys.exit(0)
 
-#def clockIn(webToken):
+def clockIn(webToken):
 
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
@@ -87,7 +87,7 @@ def getJWT():
     response = requests.request("POST", url, json=payload, headers=headers)
 
 
-#def clockOut(webToken):
+def clockOut(webToken):
 
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
@@ -113,12 +113,6 @@ def getJWT():
     }
 
     response = requests.request("POST", url, json=payload, headers=headers)
-
-def clockIn(webToken):
-    print(webToken)
-
-def clockOut(webToken):
-    print(webToken)
 
 
 def buttonClick(buttonType):
