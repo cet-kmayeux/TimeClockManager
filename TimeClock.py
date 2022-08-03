@@ -1,37 +1,11 @@
-import os, sys, requests, getpass, keyring
+import os, sys, requests, keyring, webbrowser
 import tkinter as tk
+from tkinter import messagebox
 from time import strftime
 from sys import platform
 
-
 def loginSetup():
-    while True:
-        userInput = input("\nLogin Data not detected, would you like to proceed with First Time Setup? (Y or N)\n")
-
-        if (userInput.upper() == "Y"):
-            
-            userName = input("\nPlease input your username now: ")
-
-            while True:
-                userPass = ""
-                userPass = getpass.getpass("Please input your password: ")
-
-                if (userPass == getpass.getpass("Please verify your password: ")):
-                    keyring.set_password("TimeClockManager", "username", userName)
-                    keyring.set_password("TimeClockManager", userName, userPass)
-                    break
-
-                else:
-                    print("\nPasswords do not match, please try again.\n")
-
-            break
-
-        elif (userInput.upper() == "N"):
-            print("\nGoodbye!")
-            sys.exit(0)
-
-        else:
-            print("\nERROR: Invalid Operator Detected \'%s\' please try again." % (userInput))
+    LoginCreator().run()
 
 def getJWT():
     userName = keyring.get_password("TimeClockManager", "username") 
@@ -51,12 +25,11 @@ def getJWT():
     try:
         return responseJson["jwt"]
     except:
-        userInput = input("\nAn error has occured, this is usually because of an improper Username / Password configuration. Would you like to perform first time setup now?\n")
-        if userInput.upper() == "Y":
+        userChoice = messagebox.askyesno("JWT ERROR", "An error has occured, this is usually because of an improper Username / Password configuration. Would you like to perform first time setup now?")
+        if userChoice == True:
             loginSetup()
-            print("\nLogin Setup completed. Please retry last command now.\n")
         else:
-            print("\nGoodbye.")
+            messagebox.showinfo("Quit By User", "Goodbye.")
             sys.exit(0)
 
 def clockIn(webToken):
@@ -115,25 +88,10 @@ def clockOut(webToken):
 
     response = requests.request("POST", url, json=payload, headers=headers)
 
-
-def buttonClick(buttonType):
-    currentTime = time.strftime("%I:%M:%S", time.localtime())
-    if(buttonType == 1):
-        # Run Clock In Function, Print Time, Append Time to Log
-        clockIn(getJWT())
-        messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
-
-    elif(buttonType == 2): 
-        # Run Clock Out Function, Print Time, Append Time to Log
-        clockOut(getJWT())
-        messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
-
-def loginSetup():
-    LoginCreator().run()
+def goSite():
+    webbrowser.open("https://clock.payrollservers.us/?wl=erccolorado.payrollservers.us#/clock/web/login", new=1, autoraise=True)
 
 
-def getJWT():
-    sys.exit(0)
 
 class MainUI(tk.Tk):
     def __init__(self, master=None):
@@ -148,6 +106,7 @@ class MainUI(tk.Tk):
             text="Timeclock Website",
         )
         self.goSite.pack(pady=20, side="bottom")
+        self.goSite.configure(command=lambda: self.buttonClick(3))
         self.clockIn = tk.Button(self.frame1)
         self.clockIn.configure(
             borderwidth=0,
@@ -156,7 +115,7 @@ class MainUI(tk.Tk):
             text="Clock In",
         )
         self.clockIn.pack(padx=25, side="left")
-        self.clockIn.configure(command=self.buttonClick)
+        self.clockIn.configure(command=lambda: self.buttonClick(1))
         self.clockOut = tk.Button(self.frame1)
         self.clockOut.configure(
             borderwidth=0,
@@ -165,6 +124,7 @@ class MainUI(tk.Tk):
             text="Clock Out",
         )
         self.clockOut.pack(padx=25, side="left")
+        self.clockOut.configure(command=lambda: self.buttonClick(2))
         self.frame1.configure(background="#707ec9", height=200, width=200)
         self.frame1.place(relx=0.15, rely=0.5, x=0, y=0)
         self.clockFace = tk.Label(self.MainGUI)
@@ -176,7 +136,7 @@ class MainUI(tk.Tk):
         menuBar = tk.Menu(self.MainGUI)
         admin = tk.Menu(menuBar)
         admin.add_command(label="Perform Login Setup", command=lambda: loginSetup())
-        admin.add_command(label="Get JWT", command=lambda: getJWT())
+        admin.add_command(label="Get JWT", command=lambda: messagebox.showinfo("", getJWT()))
         menuBar.add_cascade(label="Admin", menu=admin)
 
 
@@ -192,10 +152,24 @@ class MainUI(tk.Tk):
         self.mainwindow = self.MainGUI
 
     def run(self):
+        if (keyring.get_password("TimeClockManager", "username") is None):
+            LoginCreator().run()
         self.mainwindow.mainloop()
 
-    def buttonClick(self):
-        pass
+    def buttonClick(self, buttonType):
+        currentTime = strftime('%I:%M:%S %p')
+        if(buttonType == 1):
+            # Run Clock In Function, Print Time, Append Time to Log
+            clockIn(getJWT())
+            messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
+
+        elif(buttonType == 2): 
+            # Run Clock Out Function, Print Time, Append Time to Log
+            clockOut(getJWT())
+            messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
+
+        elif(buttonType == 3):
+            goSite()
 
     def time(self):
         string = strftime('%I:%M:%S %p')
@@ -245,6 +219,8 @@ class LoginCreator:
         self.CredentialEntry.configure(background="#707ec9", height=250, width=400)
         self.CredentialEntry.title("Login Setup")
 
+        
+
         # Main widget
         self.mainwindow = self.CredentialEntry
 
@@ -252,7 +228,20 @@ class LoginCreator:
         self.mainwindow.mainloop()
 
     def buttonClick(self):
-        self.CredentialEntry.destroy()
+        userName = self.userNameEntry.get()
+        password = self.passwordEntry.get()
+        passwordRe = self.passwordReEntry.get()
+
+        if (password == passwordRe):
+            keyring.set_password("TimeClockManager", "username", userName)
+            keyring.set_password("TimeClockManager", userName, password)
+
+            messagebox.showinfo("Success", "Login Information Successfully Created")
+            self.CredentialEntry.destroy()
+        elif (password != passwordRe):
+            messagebox.showerror('error', 'Passwords do not match, please try again!')
+            self.passwordEntry.delete(0, 254)
+            self.passwordReEntry.delete(0, 254)
 
 
 if __name__ == "__main__":
