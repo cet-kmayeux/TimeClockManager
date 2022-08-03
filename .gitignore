@@ -12,3 +12,5 @@ __pycache__/
 
 .TimeClock.py.swp
 .GUI.py.swp
+
+buildozer.spec
