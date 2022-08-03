@@ -101,7 +101,6 @@ class MainUI(tk.Tk):
         self.goSite = tk.Button(self.frame1)
         self.goSite.configure(
             borderwidth=0,
-            cursor="pointinghand",
             highlightbackground="#707ec9",
             text="Timeclock Website",
         )
@@ -110,7 +109,6 @@ class MainUI(tk.Tk):
         self.clockIn = tk.Button(self.frame1)
         self.clockIn.configure(
             borderwidth=0,
-            cursor="pointinghand",
             highlightbackground="#707ec9",
             text="Clock In",
         )
@@ -119,7 +117,6 @@ class MainUI(tk.Tk):
         self.clockOut = tk.Button(self.frame1)
         self.clockOut.configure(
             borderwidth=0,
-            cursor="pointinghand",
             highlightbackground="#707ec9",
             text="Clock Out",
         )
@@ -212,7 +209,7 @@ class LoginCreator:
 
         self.submitButton = tk.Button(self.CredentialEntry)
         self.submitButton.configure(
-            cursor="pointinghand", highlightbackground="#707ec9", text="Submit"
+            highlightbackground="#707ec9", text="Submit"
         )
         self.submitButton.place(anchor="nw", relx=0.78, rely=0.87, x=0, y=0)
         self.submitButton.configure(command=self.buttonClick)
