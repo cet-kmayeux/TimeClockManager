@@ -1,9 +1,10 @@
-import os, sys, requests, getpass, keyring, tkinter, time
-from tkinter import *
-from tkinter import messagebox
+import os, sys, requests, getpass, keyring
+import tkinter as tk
+from time import strftime
+from sys import platform
+
 
 def loginSetup():
-
     while True:
         userInput = input("\nLogin Data not detected, would you like to proceed with First Time Setup? (Y or N)\n")
 
@@ -127,33 +128,133 @@ def buttonClick(buttonType):
         clockOut(getJWT())
         messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
 
-def menuClick(menuType):
-    if(menuType == 1):
-        print(getJWT())
-
-def guiMain():
-    window = tkinter.Tk()
-    window.title("Time Clock Manager")
-    window.geometry("300x100")
-    
-    clockIn = Button(window, text="Clock In", width=9, height=3, command=lambda: buttonClick(1))
-    clockIn.place(relx=0.10, rely=0.20)
-    clockOut = Button(window, text="Clock Out", width=9, height=3, command=lambda: buttonClick(2))
-    clockOut.place(relx=0.50, rely=0.20)
-
-    menuBar = Menu(window)
-    window.config(menu=menuBar)
-
-    adminMenu = Menu(menuBar)
-    menuBar.add_cascade(label="Admin", menu=adminMenu)
-    adminMenu.add_command(label = "Perform First Time Login Setup", command=lambda: loginSetup())
-    adminMenu.add_separator()
-    adminMenu.add_command(label = "Get JWT", command=lambda: menuClick(1))
-
-    window.mainloop()
+def loginSetup():
+    LoginCreator().run()
 
 
-if (keyring.get_password("TimeClockManager", "username") is None):
-    loginSetup()
+def getJWT():
+    sys.exit(0)
 
-guiMain()
+class MainUI(tk.Tk):
+    def __init__(self, master=None):
+        # build ui
+        self.MainGUI = tk.Tk() if master is None else tk.Toplevel(master)
+        self.frame1 = tk.Frame(self.MainGUI)
+        self.goSite = tk.Button(self.frame1)
+        self.goSite.configure(
+            borderwidth=0,
+            cursor="pointinghand",
+            highlightbackground="#707ec9",
+            text="Timeclock Website",
+        )
+        self.goSite.pack(pady=20, side="bottom")
+        self.clockIn = tk.Button(self.frame1)
+        self.clockIn.configure(
+            borderwidth=0,
+            cursor="pointinghand",
+            highlightbackground="#707ec9",
+            text="Clock In",
+        )
+        self.clockIn.pack(padx=25, side="left")
+        self.clockIn.configure(command=self.buttonClick)
+        self.clockOut = tk.Button(self.frame1)
+        self.clockOut.configure(
+            borderwidth=0,
+            cursor="pointinghand",
+            highlightbackground="#707ec9",
+            text="Clock Out",
+        )
+        self.clockOut.pack(padx=25, side="left")
+        self.frame1.configure(background="#707ec9", height=200, width=200)
+        self.frame1.place(relx=0.15, rely=0.5, x=0, y=0)
+        self.clockFace = tk.Label(self.MainGUI)
+        self.clockFace.configure(background="#707ec9", font="{Courier New} 52 {}")
+        self.clockFace.place(
+            anchor="nw", relheight=0.3, relwidth=0.9, relx=0.05, rely=0.05, x=0, y=0
+        )
+        
+        menuBar = tk.Menu(self.MainGUI)
+        admin = tk.Menu(menuBar)
+        admin.add_command(label="Perform Login Setup", command=lambda: loginSetup())
+        admin.add_command(label="Get JWT", command=lambda: getJWT())
+        menuBar.add_cascade(label="Admin", menu=admin)
+
+
+        self.MainGUI.configure(
+            background="#707ec9", borderwidth=5, height=250, relief="ridge", menu=menuBar
+        )
+        self.MainGUI.configure(width=400)
+        self.MainGUI.title("Time Clock Manager")
+
+        self.time()
+
+        # Main widget
+        self.mainwindow = self.MainGUI
+
+    def run(self):
+        self.mainwindow.mainloop()
+
+    def buttonClick(self):
+        pass
+
+    def time(self):
+        string = strftime('%I:%M:%S %p')
+        self.clockFace.config(text = string)
+        self.clockFace.after(1000, self.time)
+
+
+class LoginCreator:
+    def __init__(self, master=None):
+        # build ui
+        self.CredentialEntry = tk.Tk() if master is None else tk.Toplevel(master)
+        self.loginMessage = tk.Message(self.CredentialEntry)
+        self.loginMessage.configure(
+            anchor="n",
+            font="{Arial} 20 {}",
+            justify="center",
+            text="Please input your login credentials and then press submit.",
+        )
+        self.loginMessage.configure(width=340)
+        self.loginMessage.place(
+            anchor="nw", relwidth=0.9, relx=0.05, rely=0.05, x=0, y=0
+        )
+        self.userNameEntry = tk.Entry(self.CredentialEntry)
+        self.userNameEntry.place(anchor="nw", relx=0.3, rely=0.45, x=0, y=0)
+        self.userNameLabel = tk.Label(self.CredentialEntry)
+        self.userNameLabel.configure(font="{Arial} 12 {}", text="Username")
+        self.userNameLabel.place(anchor="nw", relx=0.1, rely=0.45, x=0, y=0)
+
+        self.passwordEntry = tk.Entry(self.CredentialEntry, show="*")
+        self.passwordEntry.place(anchor="nw", relx=0.3, rely=0.60, x=0, y=0)
+        self.passwordLabel = tk.Label(self.CredentialEntry)
+        self.passwordLabel.configure(font="{Arial} 12 {}", text="Password")
+        self.passwordLabel.place(anchor="nw", relx=0.1, rely=0.60, x=0, y=0)
+
+        self.passwordReEntry = tk.Entry(self.CredentialEntry, show="*")
+        self.passwordReEntry.place(anchor="nw", relx=0.3, rely=0.75, x=0, y=0)
+        self.passwordReLabel = tk.Label(self.CredentialEntry)
+        self.passwordReLabel.configure(font="{Arial} 12 {}", text="Reenter Password")
+        self.passwordReLabel.place(anchor="nw", relx=0.03, rely=0.75, x=0, y=0)
+
+        self.submitButton = tk.Button(self.CredentialEntry)
+        self.submitButton.configure(
+            cursor="pointinghand", highlightbackground="#707ec9", text="Submit"
+        )
+        self.submitButton.place(anchor="nw", relx=0.78, rely=0.87, x=0, y=0)
+        self.submitButton.configure(command=self.buttonClick)
+        self.CredentialEntry.configure(background="#707ec9", height=250, width=400)
+        self.CredentialEntry.title("Login Setup")
+
+        # Main widget
+        self.mainwindow = self.CredentialEntry
+
+    def run(self):
+        self.mainwindow.mainloop()
+
+    def buttonClick(self):
+        self.CredentialEntry.destroy()
+
+
+if __name__ == "__main__":
+    app = MainUI()
+    app.run()
