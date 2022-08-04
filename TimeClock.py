@@ -8,7 +8,12 @@ def loginSetup():
     LoginCreator().run()
 
 #This function gets the Json Web Token needed to authorize the user clocking in / out
-def getJWT():
+def getJWT(numAttempts):
+    numAttempts += 1
+    if (numAttempts > 5):
+        messagebox.showerror("ERROR", "Too many invalid attempts, please verify your login information and try again later.")
+        sys.exit(0)
+
     userName = keyring.get_password("TimeClockManager", "username") 
 
     url = "https://clock.payrollservers.us/AuthenticationService/OwnerCredentialsGrant/login"
@@ -32,6 +37,7 @@ def getJWT():
         userChoice = messagebox.askyesno("JWT ERROR", "An error has occured, this is usually because of an improper Username / Password configuration. Would you like to perform first time setup now?")
         if userChoice == True:
             loginSetup()
+            return getJWT(numAttempts)
         else:
             messagebox.showinfo("Quit By User", "Goodbye.")
             sys.exit(0)
@@ -156,8 +162,8 @@ class MainUI(tk.Tk):
         # Main widget
         self.mainwindow = self.MainGUI
 
-    def run(self):
 #When run, if the user doesn't have a login setup, open the Login Creation Window along with the main window
+    def run(self):
         if (keyring.get_password("TimeClockManager", "username") is None):
             LoginCreator().run()
         self.mainwindow.mainloop()
@@ -166,14 +172,15 @@ class MainUI(tk.Tk):
         currentTime = strftime('%I:%M:%S %p')
         if(buttonType == 1):
             # Run Clock In Function, Print Time, Append Time to Log
-            clockIn(getJWT())
+            clockIn(getJWT(1))
             messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
 
         elif(buttonType == 2): 
             # Run Clock Out Function, Print Time, Append Time to Log
-            clockOut(getJWT())
+            clockOut(getJWT(1))
             messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
-
+            
+            # Go to the Time Clock Website without logging in
         elif(buttonType == 3):
             goSite()
 
