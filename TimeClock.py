@@ -1,18 +1,15 @@
-import os, sys, requests, keyring, webbrowser
+import os, sys, requests, keyring, webbrowser, csv
 import tkinter as tk
 from tkinter import messagebox
 from time import strftime
 from sys import platform
+from os.path import exists
 
 def loginSetup():
     LoginCreator().run()
 
 #This function gets the Json Web Token needed to authorize the user clocking in / out
-def getJWT(numAttempts):
-    numAttempts += 1
-    if (numAttempts > 5):
-        messagebox.showerror("ERROR", "Too many invalid attempts, please verify your login information and try again later.")
-        sys.exit(0)
+def getJWT():
 
     userName = keyring.get_password("TimeClockManager", "username") 
 
@@ -37,12 +34,42 @@ def getJWT(numAttempts):
         userChoice = messagebox.askyesno("JWT ERROR", "An error has occured, this is usually because of an improper Username / Password configuration. Would you like to perform first time setup now?")
         if userChoice == True:
             loginSetup()
-            return getJWT(numAttempts)
         else:
             messagebox.showinfo("Quit By User", "Goodbye.")
             sys.exit(0)
 
+
+def clockStateCheck(buttonType):
+    filename = "TimeClockInfo.csv"
+    fields = ['Name', 'Date', 'Time', 'State']
+
+    if(not exists(filename)):
+        with open (filename, "a+") as csvFile:
+            csvwriter = csv.writer(csvFile)
+            csvwriter.writerow(fields)
+        return True
+    else:
+        with open (filename, 'r') as csvFile:
+            csvreader = csv.reader(csvFile)
+            csvreader = list(csvreader)
+
+            if (buttonType == 1):
+                if ((csvreader[-1][-1]) == "Clocked In"):
+                    return messagebox.askyesno("ERROR", "Last recorded action was: CLOCKING IN.\n\n Do you really want to Clock In again?")
+                else:
+                    return True
+
+            elif (buttonType == 2):
+                if ((csvreader[-1][-1]) == "Clocked Out"):
+                    return messagebox.askyesno("ERROR", "Last recorded action was: CLOCKING OUT.\n\n Do you really want to Clock Out again?")
+                else:
+                    return True
+
+
 def clockIn(webToken):
+    filename = "TimeClockInfo.csv"
+    date = strftime('%x')
+    time = strftime('%I:%M:%S %p')
 
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
@@ -71,8 +98,15 @@ def clockIn(webToken):
 #Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked In state
     response = requests.request("POST", url, json=payload, headers=headers)
 
+    rows = [keyring.get_password("TimeClockManager", "username"), date, time, 'Clocked In']
+    with open (filename, 'a') as csvFile:
+        csvwriter = csv.writer(csvFile)
+        csvwriter.writerow(rows)
 
 def clockOut(webToken):
+    filename = "TimeClockInfo.csv"
+    date = strftime('%x')
+    time = strftime('%I:%M:%S %p')
 
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
@@ -99,6 +133,11 @@ def clockOut(webToken):
 
 #Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked Out state
     response = requests.request("POST", url, json=payload, headers=headers)
+
+    rows = [keyring.get_password("TimeClockManager", "username"), date, time, 'Clocked Out']
+    with open (filename, 'a') as csvFile:
+        csvwriter = csv.writer(csvFile)
+        csvwriter.writerow(rows)
 
 #Opens the login page for the TimeClock site in a new window using the default browser
 def goSite():
@@ -172,13 +211,15 @@ class MainUI(tk.Tk):
         currentTime = strftime('%I:%M:%S %p')
         if(buttonType == 1):
             # Run Clock In Function, Print Time, Append Time to Log
-            clockIn(getJWT(1))
-            messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
+            if(clockStateCheck(buttonType) == True):
+                clockIn(getJWT())
+                messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
 
         elif(buttonType == 2): 
             # Run Clock Out Function, Print Time, Append Time to Log
-            clockOut(getJWT(1))
-            messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
+            if(clockStateCheck(buttonType) == True):
+                clockOut(getJWT())
+                messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
             
             # Go to the Time Clock Website without logging in
         elif(buttonType == 3):
