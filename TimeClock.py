@@ -7,6 +7,7 @@ from sys import platform
 def loginSetup():
     LoginCreator().run()
 
+#This function gets the Json Web Token needed to authorize the user clocking in / out
 def getJWT():
     userName = keyring.get_password("TimeClockManager", "username") 
 
@@ -19,9 +20,12 @@ def getJWT():
 }
     headers = {"Content-Type": "application/json"}
 
+#Send a POST request to the target URL with the above data, storing the response into a variable
     response = requests.request("POST", url, json=payload, headers=headers)
 
     responseJson = response.json()
+
+#If the response is a JWT as intended, return the token itself, otherwise, prompt the user for a password reset as that is the likely reason for a failure
     try:
         return responseJson["jwt"]
     except:
@@ -58,6 +62,7 @@ def clockIn(webToken):
         "Sec-Fetch-Site": "same-origin"
     }
 
+#Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked In state
     response = requests.request("POST", url, json=payload, headers=headers)
 
 
@@ -86,8 +91,10 @@ def clockOut(webToken):
      "Sec-Fetch-Site": "same-origin"
     }
 
+#Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked Out state
     response = requests.request("POST", url, json=payload, headers=headers)
 
+#Opens the login page for the TimeClock site in a new window using the default browser
 def goSite():
     webbrowser.open("https://clock.payrollservers.us/?wl=erccolorado.payrollservers.us#/clock/web/login", new=1, autoraise=True)
 
@@ -143,12 +150,14 @@ class MainUI(tk.Tk):
         self.MainGUI.configure(width=400)
         self.MainGUI.title("Time Clock Manager")
 
+#Starts the clock face shown in the GUI
         self.time()
 
         # Main widget
         self.mainwindow = self.MainGUI
 
     def run(self):
+#When run, if the user doesn't have a login setup, open the Login Creation Window along with the main window
         if (keyring.get_password("TimeClockManager", "username") is None):
             LoginCreator().run()
         self.mainwindow.mainloop()
@@ -168,6 +177,7 @@ class MainUI(tk.Tk):
         elif(buttonType == 3):
             goSite()
 
+#Sets up the clock face and increments it every second
     def time(self):
         string = strftime('%I:%M:%S %p')
         self.clockFace.config(text = string)
@@ -224,6 +234,7 @@ class LoginCreator:
     def run(self):
         self.mainwindow.mainloop()
 
+#On submission button click, verify that the passwords are the same, if so, submit info to keyring and close window; if not, prompt user to try again
     def buttonClick(self):
         userName = self.userNameEntry.get()
         password = self.passwordEntry.get()
@@ -235,6 +246,7 @@ class LoginCreator:
 
             messagebox.showinfo("Success", "Login Information Successfully Created")
             self.CredentialEntry.destroy()
+
         elif (password != passwordRe):
             messagebox.showerror('error', 'Passwords do not match, please try again!')
             self.passwordEntry.delete(0, 254)
