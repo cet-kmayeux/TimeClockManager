@@ -41,29 +41,22 @@ def getJWT():
 
 def clockStateCheck(buttonType):
     filename = "TimeClockInfo.csv"
-    fields = ['Name', 'Date', 'Time', 'State']
 
-    if(not exists(filename)):
-        with open (filename, "a+", newline='') as csvFile:
-            csvwriter = csv.writer(csvFile)
-            csvwriter.writerow(fields)
-        return True
-    else:
-        with open (filename, 'r', newline='') as csvFile:
-            csvreader = csv.reader(csvFile)
-            csvreader = list(csvreader)
+    with open (filename, 'r', newline='') as csvFile:
+        csvreader = csv.reader(csvFile)
+        csvreader = list(csvreader)
 
-            if (buttonType == 1):
-                if ((csvreader[-1][-1]) == "Clocked In"):
-                    return messagebox.askyesno("ERROR", "Last recorded action was: CLOCKING IN.\n\n Do you really want to Clock In again?")
-                else:
-                    return True
+        if (buttonType == 1):
+            if ((csvreader[-1][-1]) == "Clocked In"):
+                return messagebox.askyesno("ERROR", "Last recorded action was: CLOCKING IN.\n\n Do you really want to Clock In again?")
+            else:
+                return True
 
-            elif (buttonType == 2):
-                if ((csvreader[-1][-1]) == "Clocked Out"):
-                    return messagebox.askyesno("ERROR", "Last recorded action was: CLOCKING OUT.\n\n Do you really want to Clock Out again?")
-                else:
-                    return True
+        elif (buttonType == 2):
+            if ((csvreader[-1][-1]) == "Clocked Out"):
+                return messagebox.askyesno("ERROR", "Last recorded action was: CLOCKING OUT.\n\n Do you really want to Clock Out again?")
+            else:
+                return True
 
 
 def clockIn(webToken):
@@ -181,6 +174,17 @@ class MainUI(tk.Tk):
         self.clockFace.place(
             anchor="nw", relheight=0.3, relwidth=0.9, relx=0.05, rely=0.05, x=0, y=0
         )
+        self.clockState = tk.Label(self.MainGUI)
+        self.clockState.configure(anchor="n", font="{Arial} 16 {}")
+
+        self.clockStateSetter()
+
+        self.clockState.place(
+            anchor="nw", relheight=0.1, relwidth=0.6, relx=0.2, rely=0.33, x=0, y=0
+        )
+        self.versionNum = tk.Label(self.MainGUI)
+        self.versionNum.configure(background="#707ec9", text="Version 2.1.1")
+        self.versionNum.place(anchor="nw", relx=0.78, rely=0.9, x=0, y=0)
         
         menuBar = tk.Menu(self.MainGUI)
         admin = tk.Menu(menuBar)
@@ -212,16 +216,20 @@ class MainUI(tk.Tk):
         if(buttonType == 1):
             # Run Clock In Function, Print Time, Append Time to Log
             if(clockStateCheck(buttonType) == True):
-                clockIn(getJWT())
-                messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
+                if(messagebox.askyesno("Caution", "Are you sure you wish to Clock In?") == True):
+                    clockIn(getJWT())
+                    self.clockState.configure(text="Current State: Clocked In", background="#00c900")
+                    messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
 
         elif(buttonType == 2): 
             # Run Clock Out Function, Print Time, Append Time to Log
             if(clockStateCheck(buttonType) == True):
-                clockOut(getJWT())
-                messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
+                if(messagebox.askyesno("Caution", "Are you sure you wish to Clock Out?") == True):
+                    clockOut(getJWT())
+                    self.clockState.configure(text="Current State: Clocked Out", background="#c9000b")
+                    messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
             
-            # Go to the Time Clock Website without logging in
+        # Go to the Time Clock Website without logging in
         elif(buttonType == 3):
             goSite()
 
@@ -231,49 +239,76 @@ class MainUI(tk.Tk):
         self.clockFace.config(text = string)
         self.clockFace.after(1000, self.time)
 
+    def clockStateSetter(self):
+        filename = "TimeClockInfo.csv"
+        fields = ['Name', 'Date', 'Time', 'State']
+        if(not exists(filename)):
+            with open (filename, "a+", newline='') as csvFile:
+                csvwriter = csv.writer(csvFile)
+                csvwriter.writerow(fields)
+            self.clockState.configure(background="#707ec9", text="Current State:")
+        else:
+            with open (filename, 'r', newline='') as csvFile:
+                csvreader = csv.reader(csvFile)
+                csvreader = list(csvreader)
+                if ((csvreader[-1][-1]) == "Clocked In"):
+                    self.clockState.config(text="Current State: Clocked In", background="#00c900")
+                elif ((csvreader[-1][-1]) == "Clocked Out"):
+                    self.clockState.config(text="Current State: Clocked Out", background="#c9000b")
+
 class LoginCreator:
     def __init__(self, master=None):
         # build ui
         self.CredentialEntry = tk.Tk() if master is None else tk.Toplevel(master)
+        self.CredentialEntry.title("Login Entry")
         self.loginMessage = tk.Message(self.CredentialEntry)
         self.loginMessage.configure(
-            anchor="n",
-            font="{Arial} 20 {}",
-            justify="center",
-            text="Please input your login credentials and then press submit.",
+            anchor="w", background="#707ec9", font="{Arial} 20 {}", justify="left"
         )
-        self.loginMessage.configure(width=340)
-        self.loginMessage.place(
-            anchor="nw", relwidth=0.9, relx=0.05, rely=0.05, x=0, y=0
+        self.loginMessage.configure(
+            text="Please input your login credentials and then press submit.", width=300
         )
+        self.loginMessage.place(anchor="nw", relwidth=0.9, relx=0, rely=0, x=0, y=0)
         self.userNameEntry = tk.Entry(self.CredentialEntry)
-        self.userNameEntry.place(anchor="nw", relx=0.3, rely=0.45, x=0, y=0)
+        self.userNameEntry.configure(background="#c0c9c4")
+        self.userNameEntry.place(
+            anchor="nw", relwidth=0.30, relx=0.4, rely=0.45, x=0, y=0
+        )
         self.userNameLabel = tk.Label(self.CredentialEntry)
-        self.userNameLabel.configure(font="{Arial} 12 {}", text="Username")
-        self.userNameLabel.place(anchor="nw", relx=0.1, rely=0.45, x=0, y=0)
-
-        self.passwordEntry = tk.Entry(self.CredentialEntry, show="*")
-        self.passwordEntry.place(anchor="nw", relx=0.3, rely=0.60, x=0, y=0)
+        self.userNameLabel.configure(
+            background="#707ec9", font="{Arial} 12 {}", text="Username"
+        )
+        self.userNameLabel.place(anchor="nw", relx=0.05, rely=0.45, x=0, y=0)
+        self.passwordEntry = tk.Entry(self.CredentialEntry, show='*')
+        self.passwordEntry.configure(background="#c0c9c4")
+        self.passwordEntry.place(
+            anchor="nw", relwidth=0.30, relx=0.4, rely=0.60, x=0, y=0
+        )
         self.passwordLabel = tk.Label(self.CredentialEntry)
-        self.passwordLabel.configure(font="{Arial} 12 {}", text="Password")
-        self.passwordLabel.place(anchor="nw", relx=0.1, rely=0.60, x=0, y=0)
-
-        self.passwordReEntry = tk.Entry(self.CredentialEntry, show="*")
-        self.passwordReEntry.place(anchor="nw", relx=0.3, rely=0.75, x=0, y=0)
+        self.passwordLabel.configure(
+            background="#707ec9", font="{Arial} 12 {}", text="Password"
+        )
+        self.passwordLabel.place(anchor="nw", relx=0.05, rely=0.60, x=0, y=0)
+        self.passwordReEntry = tk.Entry(self.CredentialEntry, show='*')
+        self.passwordReEntry.configure(background="#c0c9c4")
+        self.passwordReEntry.place(
+            anchor="nw", relwidth=0.30, relx=0.4, rely=0.75, x=0, y=0
+        )
         self.passwordReLabel = tk.Label(self.CredentialEntry)
-        self.passwordReLabel.configure(font="{Arial} 12 {}", text="Reenter Password")
-        self.passwordReLabel.place(anchor="nw", relx=0.03, rely=0.75, x=0, y=0)
-
+        self.passwordReLabel.configure(
+            background="#707ec9", font="{Arial} 12 {}", text="Reenter Password"
+        )
+        self.passwordReLabel.place(anchor="nw", relx=0, rely=0.75, x=0, y=0)
         self.submitButton = tk.Button(self.CredentialEntry)
         self.submitButton.configure(
-            highlightbackground="#707ec9", text="Submit"
+            cursor="pointinghand", highlightbackground="#707ec9", text="Submit"
         )
-        self.submitButton.place(anchor="nw", relx=0.78, rely=0.87, x=0, y=0)
+        self.submitButton.place(anchor="nw", relx=0.68, rely=0.87, x=0, y=0)
         self.submitButton.configure(command=self.buttonClick)
-        self.CredentialEntry.configure(background="#707ec9", height=250, width=400)
-        self.CredentialEntry.title("Login Setup")
-
-        
+        self.CredentialEntry.configure(
+            background="#707ec9", borderwidth=5, height=250, relief="ridge"
+        )
+        self.CredentialEntry.configure(width=300)
 
         # Main widget
         self.mainwindow = self.CredentialEntry
