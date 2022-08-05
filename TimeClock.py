@@ -231,7 +231,6 @@ class MainUI(tk.Tk):
         self.clockFace.config(text = string)
         self.clockFace.after(1000, self.time)
 
-
 class LoginCreator:
     def __init__(self, master=None):
         # build ui
