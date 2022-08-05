@@ -44,12 +44,12 @@ def clockStateCheck(buttonType):
     fields = ['Name', 'Date', 'Time', 'State']
 
     if(not exists(filename)):
-        with open (filename, "a+") as csvFile:
+        with open (filename, "a+", newline='') as csvFile:
             csvwriter = csv.writer(csvFile)
             csvwriter.writerow(fields)
         return True
     else:
-        with open (filename, 'r') as csvFile:
+        with open (filename, 'r', newline='') as csvFile:
             csvreader = csv.reader(csvFile)
             csvreader = list(csvreader)
 
@@ -69,7 +69,7 @@ def clockStateCheck(buttonType):
 def clockIn(webToken):
     filename = "TimeClockInfo.csv"
     date = strftime('%x')
-    time = strftime('%I:%M:%S %p')
+    time = strftime('%I:%M:%S%p')
 
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
@@ -99,14 +99,14 @@ def clockIn(webToken):
     response = requests.request("POST", url, json=payload, headers=headers)
 
     rows = [keyring.get_password("TimeClockManager", "username"), date, time, 'Clocked In']
-    with open (filename, 'a') as csvFile:
+    with open (filename, 'a', newline='') as csvFile:
         csvwriter = csv.writer(csvFile)
         csvwriter.writerow(rows)
 
 def clockOut(webToken):
     filename = "TimeClockInfo.csv"
     date = strftime('%x')
-    time = strftime('%I:%M:%S %p')
+    time = strftime('%I:%M:%S%p')
 
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
@@ -135,7 +135,7 @@ def clockOut(webToken):
     response = requests.request("POST", url, json=payload, headers=headers)
 
     rows = [keyring.get_password("TimeClockManager", "username"), date, time, 'Clocked Out']
-    with open (filename, 'a') as csvFile:
+    with open (filename, 'a', newline='') as csvFile:
         csvwriter = csv.writer(csvFile)
         csvwriter.writerow(rows)
 
