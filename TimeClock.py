@@ -183,7 +183,7 @@ class MainUI(tk.Tk):
             anchor="nw", relheight=0.1, relwidth=0.6, relx=0.2, rely=0.33, x=0, y=0
         )
         self.versionNum = tk.Label(self.MainGUI)
-        self.versionNum.configure(background="#707ec9", text="Version 2.1.1")
+        self.versionNum.configure(background="#707ec9", text="Version 2.2.1")
         self.versionNum.place(anchor="nw", relx=0.78, rely=0.9, x=0, y=0)
         
         menuBar = tk.Menu(self.MainGUI)
