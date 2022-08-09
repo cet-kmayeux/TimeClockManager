@@ -89,7 +89,7 @@ def clockIn(webToken):
     }
 
 #Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked In state
-    response = requests.request("POST", url, json=payload, headers=headers)
+#    response = requests.request("POST", url, json=payload, headers=headers)
 
     rows = [keyring.get_password("TimeClockManager", "username"), date, time, 'Clocked In']
     with open (filename, 'a', newline='') as csvFile:
@@ -125,7 +125,7 @@ def clockOut(webToken):
     }
 
 #Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked Out state
-    response = requests.request("POST", url, json=payload, headers=headers)
+#    response = requests.request("POST", url, json=payload, headers=headers)
 
     rows = [keyring.get_password("TimeClockManager", "username"), date, time, 'Clocked Out']
     with open (filename, 'a', newline='') as csvFile:
@@ -212,14 +212,13 @@ class MainUI(tk.Tk):
         self.mainwindow.mainloop()
 
     def buttonClick(self, buttonType):
-        currentTime = strftime('%I:%M:%S %p')
         if(buttonType == 1):
             # Run Clock In Function, Print Time, Append Time to Log
             if(clockStateCheck(buttonType) == True):
                 if(messagebox.askyesno("Caution", "Are you sure you wish to Clock In?") == True):
                     clockIn(getJWT())
                     self.clockState.configure(text="Current State: Clocked In", background="#00c900")
-                    messagebox.showinfo("Clocked In!", "Clocked in at: " + currentTime)
+                    messagebox.showinfo("Clocked In!", "Clocked in at: " + strftime('%I:%M:%S %p'))
 
         elif(buttonType == 2): 
             # Run Clock Out Function, Print Time, Append Time to Log
@@ -227,7 +226,7 @@ class MainUI(tk.Tk):
                 if(messagebox.askyesno("Caution", "Are you sure you wish to Clock Out?") == True):
                     clockOut(getJWT())
                     self.clockState.configure(text="Current State: Clocked Out", background="#c9000b")
-                    messagebox.showinfo("Clocked Out!", "Clocked out at: " + currentTime)
+                    messagebox.showinfo("Clocked Out!", "Clocked out at: " + strftime('%I:%M:%S %p'))
             
         # Go to the Time Clock Website without logging in
         elif(buttonType == 3):
