@@ -80,15 +80,20 @@ def clockIn(webToken):
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
     if (webToken == False):
-        rows = [keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clock In Attempted, But Failed']
+        rows = ['ERROR', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clock In Attempted, But Failed']
         with open (filename, 'a', newline='') as csvFile:
             csvwriter = csv.writer(csvFile)
             csvwriter.writerow(rows)
         return False
 
+    elif (webToken == "StateSet"):
+        rows = ['DEBUG', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked In']
+        with open (filename, 'a', newline='') as csvFile:
+            csvwriter = csv.writer(csvFile)
+            csvwriter.writerow(rows)
+        app.clockState.config(text="Current State: Clocked In", background="#00c900")
+
     else:
-
-
         payload = {
         "clockPrompts": [],
         "dataCollectionMeta": [],
@@ -114,7 +119,7 @@ def clockIn(webToken):
 #Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked In state
         response = requests.request("POST", url, json=payload, headers=headers)
 
-        rows = [keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked In']
+        rows = ['SUCCESS', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked In']
         with open (filename, 'a', newline='') as csvFile:
             csvwriter = csv.writer(csvFile)
             csvwriter.writerow(rows)
@@ -129,12 +134,19 @@ def clockOut(webToken):
     url = "https://clock.payrollservers.us/ClockService/Punch"
 
     if (webToken == False):
-        rows = [keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clock Out Attempted, But Failed']
+        rows = ['ERROR', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clock Out Attempted, But Failed']
         with open (filename, 'a', newline='') as csvFile:
             csvwriter = csv.writer(csvFile)
             csvwriter.writerow(rows)
         
         return False
+    
+    elif (webToken == "StateSet"):
+        rows = ['DEBUG', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked Out']
+        with open (filename, 'a', newline='') as csvFile:
+            csvwriter = csv.writer(csvFile)
+            csvwriter.writerow(rows)
+        app.clockState.config(text="Current State: Clocked Out", background="#c9000b")
 
     else:
 
@@ -162,7 +174,7 @@ def clockOut(webToken):
 #Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked Out state
         response = requests.request("POST", url, json=payload, headers=headers)
 
-        rows = [keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked In']
+        rows = ['SUCCESS', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked In']
         with open (filename, 'a', newline='') as csvFile:
             csvwriter = csv.writer(csvFile)
             csvwriter.writerow(rows)
@@ -236,8 +248,8 @@ class MainUI(tk.Tk):
 
         debug.add_command(label="Perform Login Setup", command=lambda: loginSetup())
         debug.add_command(label="Get JWT", command=lambda: messagebox.showinfo("", getJWT()))
-        debug.add_command(label="Set State: Clocked In", command=lambda: self.clockState.config(text="Current State: Clocked In", background="#00c900"))
-        debug.add_command(label="Set State: Clocked Out", command=lambda: self.clockState.config(text="Current State: Clocked Out", background="#c9000b"))
+        debug.add_command(label="Set State: Clocked In", command=lambda: clockIn("StateSet"))
+        debug.add_command(label="Set State: Clocked Out", command=lambda: clockOut("StateSet"))
         menuBar.add_cascade(label="Debug", menu=debug)
 
 
@@ -290,7 +302,7 @@ class MainUI(tk.Tk):
 
     def clockStateSetter(self):
         filename = "TimeClockInfo.csv"
-        fields = ['Name', 'Date', 'Time', 'State']
+        fields = ['Debug', 'Name', 'Date', 'Time', 'AuthCheck', 'State']
         if(not exists(filename)):
             with open (filename, "a+", newline='') as csvFile:
                 csvwriter = csv.writer(csvFile)
