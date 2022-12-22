@@ -187,10 +187,12 @@ class MainUI(tk.Tk):
         self.versionNum.place(anchor="nw", relx=0.78, rely=0.9, x=0, y=0)
         
         menuBar = tk.Menu(self.MainGUI)
-        admin = tk.Menu(menuBar)
-        admin.add_command(label="Perform Login Setup", command=lambda: loginSetup())
-        admin.add_command(label="Get JWT", command=lambda: messagebox.showinfo("", getJWT()))
-        menuBar.add_cascade(label="Admin", menu=admin)
+        debug = tk.Menu(menuBar)
+        debug.add_command(label="Perform Login Setup", command=lambda: loginSetup())
+        debug.add_command(label="Get JWT", command=lambda: messagebox.showinfo("", getJWT()))
+        debug.add_command(label="Set State: Clocked In", command=lambda: self.clockState.config(text="Current State: Clocked In", background="#00c900"))
+        debug.add_command(label="Set State: Clocked Out", command=lambda: self.clockState.config(text="Current State: Clocked Out", background="#c9000b"))
+        menuBar.add_cascade(label="Debug", menu=debug)
 
 
         self.MainGUI.configure(
