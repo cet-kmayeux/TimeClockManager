@@ -174,7 +174,7 @@ def clockOut(webToken):
 #Send a POST request containing the above data, including the user's JWT, this should lead to a Clocked Out state
         response = requests.request("POST", url, json=payload, headers=headers)
 
-        rows = ['SUCCESS', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked In']
+        rows = ['SUCCESS', keyring.get_password("TimeClockManager", "username"), date, time, base64.b64encode(bytes(time,'utf-8')), 'Clocked Out']
         with open (filename, 'a', newline='') as csvFile:
             csvwriter = csv.writer(csvFile)
             csvwriter.writerow(rows)
